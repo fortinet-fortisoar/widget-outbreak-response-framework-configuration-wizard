@@ -1,6 +1,6 @@
 /* Copyright start
   MIT License
-  Copyright (c) 2024 Fortinet Inc
+  Copyright (c) 2025 Fortinet Inc
   Copyright end */
 'use strict';
 
@@ -21,7 +21,7 @@
         jsonData: '='
       },
       controller: 'BaseCtrl',
-      templateUrl: 'widgets/installed/outbreakAlertConfiguration-2.1.0/widgetAssets/html/schedulePlaybook.html',
+      templateUrl: 'widgets/installed/outbreakAlertConfiguration-2.2.0/widgetAssets/html/schedulePlaybook.html',
       link: link
     };
     function link(scope) {

@@ -1,6 +1,6 @@
 <!-- Copyright start
   MIT License
-  Copyright (c) 2024 Fortinet Inc
+  Copyright (c) 2025 Fortinet Inc
   Copyright end -->
 <link rel="stylesheet" type="text/css" href="{{widgetCSS}}" />
 <div class="modal-header">
@@ -397,28 +397,84 @@
               <div class="col-md-6 prerequisites-section padding-bottom-25 padding-left-0">
                 <div class="form-group margin-bottom-0">
                   <div class="font-size-30 muted-80 line-height-1">{{viewWidgetVars.FIFTH_PAGE_TITLE}}</div>
-                  <div
-                    class="solid-border element-secondary-bgcolor padding-20 margin-top-md padding-top-md padding-bottom-md">
-                    <div class="font-size-18 muted-80 line-height-1">{{viewWidgetVars.FIFTH_PAGE_SECTION_1_HEADING}}
-                    </div><br />
-                    <p class="font-Size-13 muted">
-                      <span>{{viewWidgetVars.FIFTH_PAGE_SECTION_1_DISCRIPTION_2}}</span>
-                    </p>
-                    <label for="fromSeverity" class="control-label">{{viewWidgetVars.FIFTH_PAGE_SECTION_2_SEVERITY}}
-                      <span data-uib-tooltip="{{viewWidgetVars.FIFTH_PAGE_SECTION_1_DISCRIPTION_1}}"
-                        data-tooltip-append-to-body="true"><i class="icon icon-information"></i></span></label>
-                    <div class="cs-select">
-                      <ui-select name="select_outbreak_type" id="select_outbreak_type"
-                        data-ng-model="selectedEnv.installOutbreakType" data-ng-required="true" multiple
-                        class="custom-multi-select" append-to-body="false">
-                        <ui-select-match placeholder="Select Severity...">{{$item}}
-                        </ui-select-match>
-                        <ui-select-choices
-                          repeat="option in outbreakAlertSeverityList | filter: $select.search | orderBy: 'item'"
-                          refresh-delay="200" ng-show="($select.items.length > 0) ||">
-                          <div ng-bind-html="option | highlight: $select.search"></div>
-                        </ui-select-choices>
-                      </ui-select>
+                  <div ng-form="autoInstallationForm" name="autoInstallationForm">
+                    <div
+                      class="solid-border element-secondary-bgcolor padding-20 margin-top-md padding-top-md padding-bottom-md">
+                      <div class="font-size-18 muted-80 line-height-1">{{viewWidgetVars.FIFTH_PAGE_SECTION_1_HEADING}}
+                      </div><br />
+                      <p class="font-Size-13 muted">
+                        <span>{{viewWidgetVars.FIFTH_PAGE_SECTION_1_DISCRIPTION_1}}</span>
+                      </p>
+                        <div class="radio">
+                          <div class="cs-radio-item margin-bottom-sm width-100pt">
+                            <input type="radio" id="installSelectedRadio" name="installSelectedRadio"
+                              data-ng-model="selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks" data-ng-value="true">
+                            <label for="installSelectedRadio" class="radio-label muted">&nbsp;{{viewWidgetVars.FIFTH_PAGE_SECTION_1_LABLE_INSTALL_SELECTED}}</label>
+                            <div class="execution-content" data-ng-if="selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks === true">
+                              <div data-ng-if="option.value !== 'none'" class="margin-bottom-md">
+                                <div class="comment-modification-container form-horizontal">
+                                  <div class="margin-left-md align-items-center muted font-size-13 margin-top-11 display-inline-flex">
+                                    {{viewWidgetVars.FIFTH_PAGE_SECTION_1_LAST_N_DAYS}}&nbsp;
+                                    <input type="text"
+                                      class="padding-left-sm padding-right-sm width-100px form-control height-30"
+                                      id="installOutbreaksFromLastXDays" name="installOutbreaksFromLastXDays"
+                                      data-ng-init="selectedEnv.autoInstallOutbreaks.installOutbreaksFromLastXDays = 30"
+                                      data-ng-model="selectedEnv.autoInstallOutbreaks.installOutbreaksFromLastXDays"
+                                      data-ng-pattern="onlyPositivenumbers" autocomplete="off"
+                                      data-ng-required="true" />&nbsp;
+                                    {{viewWidgetVars.FOURTH_PAGE_SECTION_1_PARAM_2}}<span class="required text-danger">*</span>
+                                  </div>
+                                  <div class="error-msg-nday">
+                                    <div
+                                      data-ng-show="installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$error.pattern"
+                                      class="font-size-12 text-danger">
+                                      {{viewWidgetVars.FOURTH_PAGE_SECTION_1_TOOLTIP_1}}</div>
+                                    <div
+                                      data-ng-show="installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$error.required"
+                                      class="font-size-12 text-danger">
+                                      {{viewWidgetVars.FOURTH_PAGE_SECTION_1_TOOLTIP_2}}
+                                    </div>
+                                  </div>
+                                  <div
+                                    data-ng-class="{ 'has-error': selectedEnv.autoInstallOutbreaks.installOutbreakType.length===0 && installationForm.autoInstallationForm.OutbreakSeverities.$invalid && installationForm.autoInstallationForm.OutbreakSeverities.$touched }">
+                                    <div class="cs-select margin-left-negative-10 display-flex align-items-center margin-top-12">
+                                      <label for="fromSeverity" class="muted margin-right-md font-size-13">{{viewWidgetVars.FIFTH_PAGE_SECTION_1_SEVERITY}}<span
+                                          class="required text-danger">*</span><span data-uib-tooltip="{{viewWidgetVars.FIFTH_PAGE_SECTION_1_SEVERITY_TOOLTIP}}"
+                                          data-tooltip-append-to-body="true"><i
+                                            class="margin-left-sm icon icon-information font-Size-13">
+                                          </i></span></label>
+                                      <ui-select name="OutbreakSeverities" id="OutbreakSeverities"
+                                        data-ng-model="selectedEnv.autoInstallOutbreaks.installOutbreakType"
+                                        data-ng-required="true" multiple class="custom-multi-select" append-to-body="false">
+                                        <ui-select-match class="font-size-12"
+                                          placeholder="Select Severity...">{{$item}}</ui-select-match>
+                                        <ui-select-choices
+                                          repeat="option in outbreakAlertSeverityList | filter: $select.search | orderBy: 'item'"
+                                          refresh-delay="0" ng-show="($select.items.length > 0) ||">
+                                          <div ng-bind-html="option | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                      </ui-select>
+                                    </div>
+                                    <div
+                                      data-ng-show="selectedEnv.autoInstallOutbreaks.installOutbreakType.length===0 && installationForm.autoInstallationForm.OutbreakSeverities.$invalid && installationForm.autoInstallationForm.OutbreakSeverities.$touched"
+                                      class="font-size-12 error-msg-severity text-danger">
+                                      {{viewWidgetVars.FIFTH_PAGE_SECTION_1_SEVERITY_ERROR_MSG}}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="radio">
+                          <div class="cs-radio-item margin-bottom-sm width-100pt">
+                            <input type="radio" id="installAllRadio" name="installAllRadio" data-ng-model="selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks"
+                              data-ng-value="false">
+                            <label for="installAllRadio" class="radio-label muted">&nbsp;{{viewWidgetVars.FIFTH_PAGE_SECTION_1_LABLE_INSTALL_ALL}}</label>
+                            <div class="execution-content" data-ng-if="selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks === false">
+                            </div>
+                          </div>
+                        </div>
                     </div>
                   </div>
                   <div ng-form="notificationForm" name="notificationForm">
@@ -426,13 +482,10 @@
                       class="solid-border element-secondary-bgcolor padding-20 margin-top-md padding-top-md padding-bottom-md">
                       <div class="font-size-18 muted-80 line-height-1">{{viewWidgetVars.FIFTH_PAGE_SECTION_2_TITLE}}
                       </div><br />
-                      <p class="font-Size-13 muted">
-                        <span>{{viewWidgetVars.FIFTH_PAGE_SECTION_2_DISCRIPTION}}</span>
-                      </p>
                       <label for="fromEmailAddress" class="control-label">{{viewWidgetVars.FIFTH_PAGE_SECTION_2_EMAIL}}
                         <span data-uib-tooltip="{{viewWidgetVars.FIFTH_PAGE_SECTION_2_EMAIL_TOOLTIP}}"
                           data-tooltip-append-to-body="true"><i class="icon icon-information"></i></span></label>
-                      
+
                       <input id="fromEmailAddress" type="text" class="form-control input-sm" name="fromEmailAddress"
                         data-ng-model="selectedEnv.emailAddress" cs-email>
                       <div data-ng-show="installationForm.notificationForm.fromEmailAddress.$invalid">
@@ -484,11 +537,16 @@
                   <p><i class="completed icon icon-approval margin-right-md font-size-16"></i><span
                       class="bold muted">{{viewWidgetVars.SIXTH_PAGE_SUMMARY_HEADING_4}}
                       {{selectedEnv.scheduleFrequency}}</span></p>
-                  <p data-ng-if="selectedEnv.installOutbreakType.length > 0"><i
+                  <p data-ng-if="selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks"><i
                       class="completed icon icon-approval margin-right-md font-size-16"></i><span
                       class="bold muted">{{viewWidgetVars.SIXTH_PAGE_SUMMARY_HEADING_5}}
-                      {{selectedEnv.installOutbreakType.join(', ')}}
-                      {{viewWidgetVars.SIXTH_PAGE_SUMMARY_HEADING_5_1}}</span></p>
+                      {{selectedEnv.autoInstallOutbreaks.installOutbreakType.join(', ')}}
+                      {{viewWidgetVars.SIXTH_PAGE_SUMMARY_HEADING_5_1}}{{selectedEnv.autoInstallOutbreaks.installOutbreaksFromLastXDays}}&nbsp;{{viewWidgetVars.FOURTH_PAGE_SECTION_1_PARAM_2}}</span>
+                  </p>
+                  <p data-ng-if="!selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks"><i
+                      class="completed icon icon-approval margin-right-md font-size-16"></i><span
+                      class="bold muted">{{viewWidgetVars.SIXTH_PAGE_SUMMARY_HEADING_5_2}}</span>
+                  </p>
                   <p data-ng-if="selectedEnv.emailAddress !== null"><i
                       class="completed icon icon-approval margin-right-md font-size-16"></i><span
                       class="bold muted">{{viewWidgetVars.SIXTH_PAGE_SUMMARY_HEADING_6}}

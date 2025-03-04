@@ -1,16 +1,16 @@
 /* Copyright start
   MIT License
-  Copyright (c) 2024 Fortinet Inc
+  Copyright (c) 2025 Fortinet Inc
   Copyright end */
 'use strict';
 (function () {
     angular
         .module('cybersponse')
-        .controller('outbreakAlertConfiguration210Ctrl', outbreakAlertConfiguration210Ctrl);
+        .controller('outbreakAlertConfiguration220Ctrl', outbreakAlertConfiguration220Ctrl);
 
-    outbreakAlertConfiguration210Ctrl.$inject = ['$scope', '$http', 'WizardHandler', '$controller', '$state', 'connectorService', 'marketplaceService', 'CommonUtils', '$window', 'toaster', 'currentPermissionsService', '_', '$resource', 'API', 'ALL_RECORDS_SIZE', 'widgetBasePath', '$rootScope', 'websocketService', '$timeout', 'widgetUtilityService', 'PagedCollection', 'Query'];
+    outbreakAlertConfiguration220Ctrl.$inject = ['$scope', '$http', 'WizardHandler', '$controller', '$state', 'connectorService', 'marketplaceService', 'CommonUtils', '$window', 'toaster', 'currentPermissionsService', '_', '$resource', 'API', 'ALL_RECORDS_SIZE', 'widgetBasePath', '$rootScope', 'websocketService', '$timeout', 'widgetUtilityService', 'PagedCollection', 'Query'];
 
-    function outbreakAlertConfiguration210Ctrl($scope, $http, WizardHandler, $controller, $state, connectorService, marketplaceService, CommonUtils, $window, toaster, currentPermissionsService, _, $resource, API, ALL_RECORDS_SIZE, widgetBasePath, $rootScope, websocketService, $timeout, widgetUtilityService, PagedCollection, Query) {
+    function outbreakAlertConfiguration220Ctrl($scope, $http, WizardHandler, $controller, $state, connectorService, marketplaceService, CommonUtils, $window, toaster, currentPermissionsService, _, $resource, API, ALL_RECORDS_SIZE, widgetBasePath, $rootScope, websocketService, $timeout, widgetUtilityService, PagedCollection, Query) {
         $controller('BaseConnectorCtrl', {
             $scope: $scope
         });
@@ -23,6 +23,7 @@
         $scope.backStartPage = backStartPage;
         $scope.configHuntTool = configHuntTool;
         $scope.onlyNumbers = '^(?:[1-9]|[1-9][0-9]|[1-2][0-9][0-9]|3[0-5][0-9]|360|361|362|363|364|365)$';
+        $scope.onlyPositivenumbers = '^[1-9][0-9]*$';
         $scope.backSelectHuntTools = backSelectHuntTools;
         $scope.threatHuntSchedule = threatHuntSchedule;
         $scope.backThreatHuntConfig = backThreatHuntConfig;
@@ -69,12 +70,8 @@
         $controller('BaseConnectorCtrl', {
             $scope: $scope
         });
-        $scope.autoInstall = {
-            enabled: true
-        };
         $scope.selectedEnv = {
             huntTools: [],
-            installOutbreakType: [],
             threatHuntToolsParams: {
                 fazParams: null,
                 fsmParams: null,
@@ -83,7 +80,12 @@
             },
             timeFrameDays: null,
             emailAddress: null,
-            scheduleFrequency: null
+            scheduleFrequency: null,
+            autoInstallOutbreaks: {
+                installSelectedOutbreaks: true,
+                installOutbreaksFromLastXDays: 0,
+                installOutbreakType: []
+            }
         };
         $scope.outbreakAlertSeverityList = ['Critical', 'High', 'Medium'];
 
@@ -557,11 +559,11 @@
                                     //check if any of the cconnector config is not default
                                     // nist-nvd check is skipped
                                     $scope.connectorDefaultStatus[index] = true;
-                                    if(angular.isUndefined(default_connector)){
+                                    if (angular.isUndefined(default_connector)) {
                                         let errorMessage = `The default configuration for the ${connector.label} connector not found.`
-                                         toaster.error({
+                                        toaster.error({
                                             body: errorMessage
-                                         });
+                                        });
                                         $scope.connectorDefaultStatus[index] = false;
                                         return Promise.reject('Default configuration not found');
                                     }
@@ -573,7 +575,7 @@
                                                     .then(function (data) {
                                                         // added data.name==="nist-nvd" to skip nist health check; 
                                                         // can remove it when not required 
-                                                        if (data.name==="nist-nvd" || data.status === "Available") { 
+                                                        if (data.name === "nist-nvd" || data.status === "Available") {
                                                             $scope.connectorHealthStatus[index] = true;
                                                         }
                                                     });
@@ -601,24 +603,24 @@
                     let defaultConfigNotPresent = _.filter($scope.connectorDefaultStatus, value => value === false);
                     const notConfigConnectors = _.uniq(indices).map(index => $scope.selectedEnv.huntTools[index]);
                     const toasterMessage = 'Connector ' + notConfigConnectors.join(', ') + ' is not configured';
-                    if(defaultConfigNotPresent.length === 0){
-                         if (notConfigConnectors.length === 0) {
-                                $scope.selectedEnv.installOutbreakType = $scope.outbreakAlertSeverityList.slice();
-                                WizardHandler.wizard('OutbreaksolutionpackWizard').next();
-                            } else {
-                                var huntToolIndex = $scope.selectedEnv.huntTools.indexOf(notConfigConnectors[0]);
-                                $scope.params.activeTab = huntToolIndex;
-                                loadActiveTab(huntToolIndex, notConfigConnectors[0]);
-                                var connectorConfig = document.getElementById('accordion-connector-config-' + huntToolIndex);
-                                connectorConfig.childNodes[2].classList.add('in');
-                                toggleConnectorConfigSettings(huntToolIndex);
-                                var paramsConfig = document.getElementById('accordion-params-config-' + huntToolIndex);
-                                paramsConfig.childNodes[2].classList.replace('in', null);
-                                toggleAdvancedSettings(huntToolIndex);
-                                toaster.error({
-                                    body: toasterMessage
-                                });
-                            }
+                    if (defaultConfigNotPresent.length === 0) {
+                        if (notConfigConnectors.length === 0) {
+                            $scope.selectedEnv.autoInstallOutbreaks.installOutbreakType = $scope.outbreakAlertSeverityList.slice();
+                            WizardHandler.wizard('OutbreaksolutionpackWizard').next();
+                        } else {
+                            var huntToolIndex = $scope.selectedEnv.huntTools.indexOf(notConfigConnectors[0]);
+                            $scope.params.activeTab = huntToolIndex;
+                            loadActiveTab(huntToolIndex, notConfigConnectors[0]);
+                            var connectorConfig = document.getElementById('accordion-connector-config-' + huntToolIndex);
+                            connectorConfig.childNodes[2].classList.add('in');
+                            toggleConnectorConfigSettings(huntToolIndex);
+                            var paramsConfig = document.getElementById('accordion-params-config-' + huntToolIndex);
+                            paramsConfig.childNodes[2].classList.replace('in', null);
+                            toggleAdvancedSettings(huntToolIndex);
+                            toaster.error({
+                                body: toasterMessage
+                            });
+                        }
                     }
                 })
                 .catch(error => {
@@ -627,11 +629,25 @@
         }
 
         function moveToFinish(installationForm) {
-            if (installationForm.notificationForm.$invalid) {
-                installationForm.notificationForm.fromEmailAddress.$touched = true;
-                installationForm.notificationForm.fromEmailAddress.$untouched = false;
-                installationForm.notificationForm.fromEmailAddress.$dirty = true;
-                return;
+            if ($scope.selectedEnv.autoInstallOutbreaks.installSelectedOutbreaks) {
+                if (installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$invalid) {
+                    installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$touched = true;
+                    installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$untouched = false;
+                    installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$dirty = true;
+                    toaster.error({
+                        body: "Failed to validate the Outbreak Reponse Solution pack auto installation criteria"
+                    });
+                    return;
+                }
+                if (installationForm.autoInstallationForm.OutbreakSeverities.$invalid) {
+                    installationForm.autoInstallationForm.OutbreakSeverities.$touched = true;
+                    installationForm.autoInstallationForm.OutbreakSeverities.$untouched = false;
+                    installationForm.autoInstallationForm.OutbreakSeverities.$dirty = true;
+                    toaster.error({
+                        body: "Failed to validate the Outbreak Reponse Solution pack auto installation criteria"
+                    });
+                    return;
+                }
             }
             initWebsocket();
             triggerPlaybook();
@@ -690,10 +706,10 @@
         }
 
         function triggerAutoInstallOutbreaksPlaybook() {
-            var installOutbreakType = _.map($scope.selectedEnv.installOutbreakType, item => item + "_Severity_Outbreak_Alert");
+            // var installOutbreakType = _.map($scope.selectedEnv.autoInstallOutbreaks.installOutbreakType, item => item + "_Severity_Outbreak_Alert");
             var queryPayload =
             {
-                "request": { 'outbreak_types': installOutbreakType, 'email_address': $scope.selectedEnv.emailAddress, 'time_frame_days': $scope.selectedEnv.timeFrameDays }
+                "request": { 'auto_install_outbreaks': $scope.selectedEnv.autoInstallOutbreaks, 'email_address': $scope.selectedEnv.emailAddress }
             }
             var queryUrl = API.MANUAL_TRIGGER + '7d924203-e5e3-4ce5-b704-e8f3283c7b92';
             $http.post(queryUrl, queryPayload).then(function (response) {
@@ -763,10 +779,13 @@
                         FIFTH_PAGE_TITLE: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_TITLE'),
                         FIFTH_PAGE_SECTION_1_HEADING: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_HEADING'),
                         FIFTH_PAGE_SECTION_1_DISCRIPTION_1: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_DISCRIPTION_1'),
-                        FIFTH_PAGE_SECTION_1_DISCRIPTION_2: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_DISCRIPTION_2'),
+                        FIFTH_PAGE_SECTION_1_LABLE_INSTALL_ALL: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_LABLE_INSTALL_ALL'),
+                        FIFTH_PAGE_SECTION_1_LABLE_INSTALL_SELECTED: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_LABLE_INSTALL_SELECTED'),
+                        FIFTH_PAGE_SECTION_1_LAST_N_DAYS: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_LAST_N_DAYS'),
+                        FIFTH_PAGE_SECTION_1_SEVERITY: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_SEVERITY'),
+                        FIFTH_PAGE_SECTION_1_SEVERITY_TOOLTIP: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_SEVERITY_TOOLTIP'),
+                        FIFTH_PAGE_SECTION_1_SEVERITY_ERROR_MSG: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_1_SEVERITY_ERROR_MSG'),
                         FIFTH_PAGE_SECTION_2_TITLE: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_2_TITLE'),
-                        FIFTH_PAGE_SECTION_2_DISCRIPTION: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_2_DISCRIPTION'),
-                        FIFTH_PAGE_SECTION_2_SEVERITY: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_2_SEVERITY'),
                         FIFTH_PAGE_SECTION_2_EMAIL: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_2_EMAIL'),
                         FIFTH_PAGE_SECTION_2_EMAIL_TOOLTIP: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_2_EMAIL_TOOLTIP'),
                         FIFTH_PAGE_SECTION_2_EMAIL_VALIDATION: widgetUtilityService.translate('outbreakAlertConfiguration.FIFTH_PAGE_SECTION_2_EMAIL_VALIDATION'),
@@ -786,6 +805,7 @@
                         SIXTH_PAGE_SUMMARY_HEADING_4: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_SUMMARY_HEADING_4'),
                         SIXTH_PAGE_SUMMARY_HEADING_5: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_SUMMARY_HEADING_5'),
                         SIXTH_PAGE_SUMMARY_HEADING_5_1: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_SUMMARY_HEADING_5_1'),
+                        SIXTH_PAGE_SUMMARY_HEADING_5_2: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_SUMMARY_HEADING_5_2'),
                         SIXTH_PAGE_SUMMARY_HEADING_6: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_SUMMARY_HEADING_6'),
                         SIXTH_PAGE_AUTO_INSTALL_HEADING_1: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_AUTO_INSTALL_HEADING_1'),
                         SIXTH_PAGE_AUTO_INSTALL_BUTTON_LABEL: widgetUtilityService.translate('outbreakAlertConfiguration.SIXTH_PAGE_AUTO_INSTALL_BUTTON_LABEL'),

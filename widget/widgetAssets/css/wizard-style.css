@@ -1,6 +1,6 @@
 /* Copyright start
   MIT License
-  Copyright (c) 2024 Fortinet Inc
+  Copyright (c) 2025 Fortinet Inc
   Copyright end */
 .outbreak-config-steps {
 	.steps-indicator {
@@ -10,26 +10,31 @@
 					content: "\e97c";
 				}
 			}
+
 			&:nth-child(2) {
 				a::before {
 					content: "\e91f";
 				}
 			}
+
 			&:nth-child(3) {
 				a::before {
 					content: "\ef41c";
 				}
 			}
+
 			&:nth-child(4) {
 				a::before {
 					content: "\e985";
 				}
 			}
+
 			&:nth-child(5) {
 				a::before {
 					content: "\e998";
 				}
 			}
+
 			/* &:nth-child(6) {
 				&.done::before,
 				&.current::before,
@@ -55,6 +60,14 @@
 	margin-left: 20%;
 }
 
-.threat-hunt-connector-config-width > .row > div > .col-md-6 {
+.threat-hunt-connector-config-width>.row>div>.col-md-6 {
 	width: 100% !important;
+}
+
+.error-msg-nday {
+	margin-left: 360px !important;
+}
+
+.error-msg-severity {
+	margin-left: 100px !important;
 }
