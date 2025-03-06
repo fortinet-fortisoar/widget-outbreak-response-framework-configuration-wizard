@@ -635,7 +635,7 @@
                     installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$untouched = false;
                     installationForm.autoInstallationForm.installOutbreaksFromLastXDays.$dirty = true;
                     toaster.error({
-                        body: "Failed to validate the Outbreak Reponse Solution pack auto installation criteria"
+                        body: "Failed to validate the Outbreak Response Solution Pack auto installation criteria"
                     });
                     return;
                 }
