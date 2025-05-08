@@ -605,7 +605,15 @@
                     const toasterMessage = 'Connector ' + notConfigConnectors.join(', ') + ' is not configured';
                     if (defaultConfigNotPresent.length === 0) {
                         if (notConfigConnectors.length === 0) {
-                            $scope.selectedEnv.autoInstallOutbreaks.installOutbreakType = $scope.outbreakAlertSeverityList.slice();
+                            if (CommonUtils.isUndefined($scope.selectedEnv.autoInstallOutbreaks)) {
+                                $scope.selectedEnv.autoInstallOutbreaks = {
+                                    installSelectedOutbreaks: true,
+                                    installOutbreaksFromLastXDays: 0,
+                                    installOutbreakType: $scope.selectedEnv.installOutbreakType
+                                }
+                            } else {
+                                $scope.selectedEnv.autoInstallOutbreaks.installOutbreakType = $scope.outbreakAlertSeverityList.slice();
+                            }
                             WizardHandler.wizard('OutbreaksolutionpackWizard').next();
                         } else {
                             var huntToolIndex = $scope.selectedEnv.huntTools.indexOf(notConfigConnectors[0]);
@@ -874,7 +882,9 @@
             pagedCollection.load().then(function () {
                 console.log(pagedCollection);
                 if (pagedCollection.data['hydra:member'].length > 0 > 0) {
-                    $scope.selectedEnv = JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue).saveConfig;
+                    if (JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue) !== null) {
+                        $scope.selectedEnv = JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue).saveConfig;
+                    }
                     let index = $scope.selectedEnv.huntTools.indexOf(nistConnectorName);
                     if (index !== -1) {
                         $scope.selectedEnv.huntTools.splice(index, 1);
