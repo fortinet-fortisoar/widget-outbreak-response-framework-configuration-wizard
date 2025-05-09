@@ -881,7 +881,7 @@
             pagedCollection.query = new Query(query);
             pagedCollection.load().then(function () {
                 console.log(pagedCollection);
-                if (pagedCollection.data['hydra:member'].length > 0 > 0) {
+                if (pagedCollection.data['hydra:member'].length > 0 ) {
                     if (JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue) !== null) {
                         $scope.selectedEnv = JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue).saveConfig;
                     }
