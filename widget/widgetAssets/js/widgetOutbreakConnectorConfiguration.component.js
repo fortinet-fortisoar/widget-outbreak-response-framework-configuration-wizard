@@ -1,7 +1,6 @@
 /* Copyright start
-  Copyright (C) 2008 - 2025 Fortinet Inc.
-  All rights reserved.
-  FORTINET CONFIDENTIAL & FORTINET PROPRIETARY SOURCE CODE
+  MIT License
+  Copyright (c) 2025 Fortinet Inc
   Copyright end */
 'use strict';
 
