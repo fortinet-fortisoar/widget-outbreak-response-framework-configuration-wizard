@@ -1,0 +1,290 @@
+<!-- Copyright start
+  Copyright (C) 2008 - 2025 Fortinet Inc.
+  All rights reserved.
+  FORTINET CONFIDENTIAL & FORTINET PROPRIETARY SOURCE CODE
+  Copyright end -->
+<div>
+   <!-- vault connector message -->
+   <div class="row content-detail-tab-container"
+      data-ng-if="$ctrl.connectorInfo.tags.indexOf('vault') !== -1 || $ctrl.connectorInfo.tags.indexOf('webserver') !== -1">
+      <div class="col-md-12 margin-bottom-xlg padding-bottom-xlg margin-top-lg">
+         <div class="alert alert-warning margin-bottom-0">
+            <div class="pull-left font-size-18 margin-top-sm width-30px">
+               <i class="fa fa-exclamation-circle"></i>
+            </div>
+            <div class="pull-left width-95 margin-top-8">
+               <span data-ng-if="$ctrl.connectorInfo.tags.indexOf('webserver') !== -1"
+                  data-ng-bind-html="$ctrl.links.webserverWarning"></span>
+               <span data-ng-if="$ctrl.connectorInfo.tags.indexOf('vault') !== -1"
+                  data-ng-bind-html="$ctrl.links.passwdVaultWarning"></span>
+            </div>
+            <div class="clearfix"></div>
+         </div>
+      </div>
+   </div>
+   <!-- mlengine connector message -->
+   <div class="row content-detail-tab-container"
+      data-ng-if="$ctrl.connectorInfo.tags.indexOf('mlengine') !== -1 || $ctrl.connectorInfo.tags.indexOf('classifier') !== -1">
+      <div class="col-md-12 margin-bottom-xlg padding-bottom-xlg margin-top-lg">
+         <div class="alert alert-warning margin-bottom-0">
+            <div class="pull-left font-size-18 margin-top-sm width-30px">
+               <i class="fa fa-exclamation-circle"></i>
+            </div>
+            <div class="pull-left width-95">
+               <span>
+                  {{'WZ_CONNECTOR.PERMISSION_ERROR_CONNECTOR_CONFIG' | translate: { 'isMLEngine':
+                  ($ctrl.connectorInfo.tags.indexOf('mlengine') !== -1) } }}
+                  <span data-ng-bind-html="$ctrl.links.permissionErrorConnectorMsg"></span>
+               </span>
+            </div>
+            <div class="clearfix"></div>
+         </div>
+      </div>
+   </div>
+   <div data-ng-show="$ctrl.connectorInfo.config_count >= 0 && !$ctrl.hideConfiguration">
+      <button class="btn btn-sm btn-primary" data-ng-show="$ctrl.connectorInfo.configuration.length > 0"
+         data-ng-hide="$ctrl.enableAddConfig" data-ng-click="$ctrl.addConfiguration('add')"><i
+            class="icon icon-add"></i> {{'WZ_CONNECTOR.ADD_NEW_CONFIGURATION' | translate}}</button>
+      <button class="btn btn-sm btn-default"
+         data-ng-show="$ctrl.connectorInfo.configuration.length > 0 && $ctrl.enableAddConfig"
+         data-ng-click="$ctrl.addConfiguration('cancel')"><i class="icon icon-arrow_line_left-small"></i>
+         {{'WZ_CONNECTOR.BACK_TO_CONFIGURATION_SELECTION' | translate}}</button>
+      <div class="content-detail-form solid-border-thick margin-top-lg">
+         <div class="padding-left-md padding-right-md padding-top-sm">
+            <div class="pb-toggle-btn">
+               <label class="control-label font-10px display-inline-block pull-left margin-top-2"><span
+                     class="display-inline-block margin-right-2">{{'WZ_CONNECTOR.CONFIGURATION_TARGET' |
+                     translate}}</span><span data-uib-tooltip="{{'WZ_CONNECTOR.TOOLTIP_TARGET_SPECIFIC' | translate}}"
+                     data-tooltip-append-to-body="true" data-tooltip-placement="bottom"><i class="icon icon-information"
+                        aria-hidden="true"></i></span></label>
+               <button type="button" class="btn btn-xs muted-playbook margin-left-sm"
+                  data-ng-class="!$ctrl.agentMode ? 'active' : 'inactive'" data-ng-click="$ctrl.toggleAgentMode(false)"
+                  id="toggle-config-self-btn-{{$ctrl.tabIndex}}">{{'WZ_CONNECTOR.SELF' | translate}}</button>
+               <button type="button" class="btn btn-xs muted-playbook"
+                  data-ng-class="$ctrl.agentMode ? 'active' : 'inactive'" data-ng-click="$ctrl.toggleAgentMode(true)"
+                  id="toggle-config-agent-btn-{{$ctrl.tabIndex}}"
+                  data-ng-disabled="!$ctrl.permissions.agents.read || $ctrl.configuredAgents.length === 0"
+                  title="{{($ctrl.permissions.agents.read ? ($ctrl.configuredAgents.length === 0 ? 'CONNECTOR_NOT_INSTALLED' : ''): 'NO_PERMISSION_AGENT_CONFIGURATION') |translate }}">{{'WZ_CONNECTOR.AGENT'
+                  | translate}}</button>
+            </div>
+         </div>
+         <div class="solid-border-bottom-thick padding-top-8"></div>
+         <div class="configuration-container"></div>
+         <div class="clearfix"></div>
+         <div class="row" data-ng-if="$ctrl.agentMode">
+            <div class="col-md-6">
+               <div class="padding-left-md padding-right-md padding-top-sm">
+                  <label for="configuration-agent-{{$ctrl.tabIndex}}"
+                     class="control-label configuration-selection">{{'WZ_CONNECTOR.SELECT_AGENT' | translate}}</label>
+                  <div class="display-flex">
+                     <select class="form-control" id="configuration-agent-{{$ctrl.tabIndex}}"
+                        data-ng-disabled="$ctrl.processing" name="agentSelection" data-ng-model="$ctrl.selectedAgent"
+                        data-ng-options="agent.agent as agent.agent_name for agent in $ctrl.configuredAgents"
+                        data-ng-change="$ctrl.agentChanged($ctrl.selectedAgent)">
+                        <option value="" disabled>{{'WZ_CONNECTOR.SELECT_AGENT' | translate}}</option>
+                     </select>
+                     <span data-uib-tooltip="{{'WZ_CONNECTOR.TOOLTIP_AGENT_INCOMPATIBLE' | translate }}"
+                        data-tooltip-append-to-body="true"
+                        data-ng-show="$ctrl.selectedAgentIncompatibility && $ctrl.selectedAgent" class="margin-left-md">
+                        <i class="fa fa-exclamation-triangle text-danger margin-top-md"></i>
+                     </span>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="alert alert-danger margin-top-lg" data-ng-hide="$ctrl.selectedAgentAllowRemoteOperation">
+            <div>
+               <strong>
+                  <i class="fa fa-info-circle info-icon font-Size-13" aria-hidden="true"></i>
+               </strong> {{'WZ_CONNECTOR.REMOTE_CONNECTOR_MANAGEMENT' | translate}}
+            </div>
+         </div>
+         <div data-ng-show="$ctrl.selectedAgentAllowRemoteOperation">
+            <div class="padding-left-md padding-right-md padding-top-sm">
+               <div class="row" data-ng-show="$ctrl.connectorInfo.configuration.length > 0 && !$ctrl.enableAddConfig">
+                  <div class="col-md-6">
+                     <label for="configuration-selection-{{$ctrl.tabIndex}}"
+                        class="control-label configuration-selection">{{'WZ_CONNECTOR.SELECT_CONFIGURATION' |
+                        translate}}</label>
+                     <select class="form-control" id="configuration-selection-{{$ctrl.tabIndex}}"
+                        data-ng-disabled="$ctrl.processing" name="configurationsSelection"
+                        data-ng-model="$ctrl.selected.configuration"
+                        data-ng-options="configuration as configuration.name for configuration in $ctrl.connectorInfo.configuration track by configuration.id"
+                        data-ng-change="$ctrl.configurationChanged($ctrl.selected.configuration)">
+                        <option value="" data-ng-if="$ctrl.enableAddConfig">{{$ctrl.input.selectionPlaceholder}}
+                        </option>
+                     </select>
+                  </div>
+                  <div class="col-md-1 text-left">
+                     <button data-ng-disabled="$ctrl.agentMode && !$ctrl.permissions.agents.update"
+                        class="btn black-button conn-configuration-remove"
+                        data-ng-show="$ctrl.input.selectedConfiguration && $ctrl.input.selectedConfiguration.config_id && $ctrl.permissions.connectors.update && !$ctrl.removeConfProcessing"
+                        data-ng-click="$ctrl.removeConfiguration($ctrl.input.selectedConfiguration, true)"
+                        title="{{'WZ_CONNECTOR.REMOVE_CONFIGURATION' | translate}}" type="button"
+                        id="remove-connector-config-btn-{{$ctrl.tabIndex}}">
+                        <span class="icon icon-delete"></span>
+                     </button>
+                     <button data-ng-show="$ctrl.removeConfProcessing"
+                        class="btn black-button conn-configuration-remove">
+                        <span data-ng-if="$ctrl.removeConfProcessing" class="fa fa-refresh fa-spin"></span>
+                     </button>
+                  </div>
+                  <div class="clearfix"></div>
+               </div>
+               <div class="row margin-top-md"
+                  data-ng-show="$ctrl.input.selectedConfiguration.remote_status && (['in-progress', 'deletion-in-progress', 'failed'].indexOf($ctrl.input.selectedConfiguration.remote_status.status) !== -1)">
+                  <div class="col-md-12">
+                     <div class="alert alert-info" style="margin-bottom:0"
+                        data-ng-show="$ctrl.input.selectedConfiguration.remote_status.status === 'in-progress'">
+                        <strong><i class="fa fa-info-circle info-icon font-Size-13" aria-hidden="true"></i></strong>
+                        {{'WZ_CONNECTOR.CONFIG_SAVE_INITIATED' | translate }} <strong><i
+                              class="fa fa-spinner fa-spin"></i></strong>
+                     </div>
+                     <div class="alert alert-info" style="margin-bottom:0"
+                        data-ng-show="$ctrl.input.selectedConfiguration.remote_status.status === 'deletion-in-progress'">
+                        <strong><i class="fa fa-info-circle info-icon font-Size-13" aria-hidden="true"></i></strong>
+                        {{'WZ_CONNECTOR.CONFIG_DELETION_INITIATED' | translate}} <strong><i
+                              class="fa fa-spinner fa-spin"></i></strong>
+                     </div>
+                     <div class="alert alert-danger"
+                        data-ng-show="$ctrl.input.selectedConfiguration.remote_status.status === 'failed'">
+                        <div><strong><i class="fa fa-info-circle info-icon font-Size-13"
+                                 aria-hidden="true"></i></strong>
+                           {{'WZ_CONNECTOR.LAST_ACTION_FAILED' | translate}}:
+                           {{$ctrl.input.selectedConfiguration.remote_status.message}}</div>
+                        <div><a data-ng-show="!$ctrl.processing" data-ng-click="$ctrl.saveConfiguration()"
+                              title="{{'WZ_CONNECTOR.TOOLTIP_RETRY' | translate}}">{{'WZ_CONNECTOR.RETRY' | translate
+                              }}</a><span data-ng-show="$ctrl.processing">{{'WZ_CONNECTOR.SAVING_CONFIGURATION' |
+                              translate}}....</span></div>
+                     </div>
+                  </div>
+               </div>
+               <div class="row margin-top-md" data-ng-hide="$ctrl.enableAddConfig"
+                  data-ng-class="{'disabled': $ctrl.input.selectedConfiguration.remote_status && ($ctrl.input.selectedConfiguration.remote_status.status === 'in-progress' || $ctrl.input.selectedConfiguration.remote_status.status === 'deletion-in-progress')}">
+                  <div class="padding-right-0"
+                     data-ng-class="{'col-md-5':$ctrl.connectorInfo.configuration.length === 0 && !$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty && $ctrl.input.selectedConfiguration.status !== 0,'col-md-4':$ctrl.connectorInfo.configuration.length !== 0 || $ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty || $ctrl.input.selectedConfiguration.status === 0}">
+                     <div class="content-configuration-state">
+                        <span class="content-detail-conf-check text-uppercase"> <i class="fa fa-cog"
+                              aria-hidden="true"></i>
+                           {{ 'WZ_CONNECTOR.CONFIGURATION' | translate }}:
+                           <span
+                              data-ng-if="$ctrl.connectorInfo.configuration.length === 0 && !$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty && $ctrl.input.selectedConfiguration.status !== 0 && $ctrl.formHolder.connectorForm[$ctrl.tabIndex].$pristine"
+                              class="text-info">{{'WZ_CONNECTOR.NOT_CONFIGURED' | translate}}</span>
+                           <span
+                              data-ng-if="$ctrl.input.selectedConfiguration.config_id != null && $ctrl.formHolder.connectorForm[$ctrl.tabIndex].$pristine && !$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty"
+                              class="label-completed">{{'WZ_CONNECTOR.COMPLETED' | translate}}</span>
+                           <span
+                              data-ng-if="$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty || !$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$pristine"
+                              class="label-inprogress">{{'WZ_CONNECTOR.IN_PROGRESS' | translate}}</span>
+                           <span
+                              data-ng-if="$ctrl.connectorInfo.configuration.length > 0 && !$ctrl.input.selectedConfiguration.config_id && $ctrl.formHolder.connectorForm[$ctrl.tabIndex].$pristine"
+                              class="label-partial">-</span>
+                           <span data-ng-if="$ctrl.input.selectedConfiguration.status===0"
+                              class="label-partial">{{'WZ_CONNECTOR.PARTIALLY_CONFIGURED' | translate}}</span>
+                        </span>
+                     </div>
+                  </div>
+                  <div class="col-md-7 padding-left-0"
+                     data-ng-show="$ctrl.input.selectedConfiguration !== null && $ctrl.input.selectedConfiguration.config_id != null && $ctrl.formHolder.connectorForm[$ctrl.tabIndex].$valid && !$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty">
+                     <div class="content-detail-health margin-left-sm">
+                        <span class="content-detail-health-check text-uppercase">
+                           <i class="fa fa-stethoscope" aria-hidden="true"></i> {{'WZ_CONNECTOR.HEALTH_CHECK' |
+                           translate}}:
+                           <span>
+                              <span data-ng-if="!$ctrl.healthCheckProcessing"
+                                 class="label-{{$ctrl.input.selectedConfiguration.status | lowercase}}">
+                                 {{$ctrl.input.selectedConfiguration.status}}
+                              </span>
+                           </span>
+                        </span>
+                        <a class="content-detail-refresh-icon" href="#"
+                           data-ng-click="$ctrl.checkHealth($ctrl.input.selectedConfiguration)"
+                           data-ng-class="{'pointer-event-none': $ctrl.healthCheckProcessing}">
+                           <span class="fa icon icon-refresh" data-ng-class="{'fa-spin': $ctrl.healthCheckProcessing}"
+                              title="{{'WZ_CONNECTOR.CHECK_HEALTH_STATUS' | translate}}"></span>
+                        </a>
+                        <span class="content-detail-info-icon"
+                           data-uib-tooltip="{{$ctrl.input.selectedConfiguration._message}}" tooltip-class="break-word"
+                           data-tooltip-append-to-body="true">
+                           <i class="icon icon-information"></i>
+                        </span>
+                     </div>
+                     <div class="display-inline-block position-relative height-30">
+                        <span data-ng-show="$ctrl.input.selectedConfiguration.lastKnownHealthTime"
+                           class="custom-tooltiptext">{{
+                           $ctrl.input.selectedConfiguration.lastKnownHealthTime | unixToDate |
+                           timeAgo:$ctrl.appDatetimeFormat }}</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div data-ng-hide="$ctrl.enableAddConfig" class="solid-border-bottom-thick padding-top-8"></div>
+            <div class="padding-left-md padding-right-md padding-top-sm">
+               <div class="row"
+                  ng-class="{'disabled': $ctrl.input.selectedConfiguration.remote_status &&($ctrl.input.selectedConfiguration.remote_status.status === 'in-progress' || $ctrl.input.selectedConfiguration.remote_status.status === 'deletion-in-progress')}">
+                  <div class="col-md-12">
+                     <form id="connectorForm-{{$ctrl.tabIndex}}" name="$ctrl.formHolder.connectorForm[$ctrl.tabIndex]"
+                        class="configuration-form">
+                        <fieldset data-ng-disabled="!$ctrl.permissions.connectors.update || $ctrl.processing">
+                           <div class="row">
+                              <div
+                                 data-ng-class="$ctrl.connectorInfo.ingestion_supported === true ? 'col-md-7' : 'col-md-12'">
+                                 <div class="form-group"
+                                    data-ng-class="{ 'has-error': $ctrl.formHolder.connectorForm[$ctrl.tabIndex].connectorname.$invalid && $ctrl.formHolder.connectorForm[$ctrl.tabIndex].connectorname.$touched }">
+                                    <label for="connectorname-{{$ctrl.tabIndex}}"
+                                       class="control-label">{{'WZ_CONNECTOR.CONFIGURATION_NAME' | translate}}<span
+                                          class="margin-left-sm text-danger">*</span>
+                                    </label>
+                                    <input id="connectorname-{{$ctrl.tabIndex}}" type="text"
+                                       name="connectorname-{{$ctrl.tabIndex}}"
+                                       data-ng-model="$ctrl.input.selectedConfiguration.name" class="form-control"
+                                       maxlength="100" required />
+                                    <div
+                                       data-cs-messages="$ctrl.formHolder.connectorForm[$ctrl.tabIndex].connectorname">
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="row">
+                              <div class="col-md-6">
+                                 <div class="form-group">
+                                    <input id="connectordefault-{{$ctrl.tabIndex}}" type="checkbox"
+                                       name="connectordefault-{{$ctrl.tabIndex}}"
+                                       data-ng-model="$ctrl.input.selectedConfiguration.default"
+                                       data-disabled="!$ctrl.permission.update"
+                                       data-ng-change="$ctrl.removeDefaultFromOthers()" />
+                                    <label for="connectordefault-{{$ctrl.tabIndex}}" class="control-label">&nbsp;&nbsp;
+                                       {{'WZ_CONNECTOR.MARK_AS_DEFAULT' | translate}}</label>
+                                 </div>
+                              </div>
+                              <div class="col-md-6" data-ng-show="$ctrl.permissions.security.read">
+                                 <div data-connector-ownership data-ng-model="$ctrl.input.selectedConfiguration"
+                                    data-owners="$ctrl.owners"
+                                    data-form="$ctrl.formHolder.connectorForm[$ctrl.tabIndex]">
+                                 </div>
+                              </div>
+                           </div>
+                           <cs-connector-field-renderer data-cs-form="$ctrl.formHolder.connectorForm[$ctrl.tabIndex]"
+                              data-json-fields="$ctrl.input.selectedConfiguration.fields"
+                              data-params="$ctrl.selected.params" data-connector-data="$ctrl.connectorData"
+                              field-modify-func="$ctrl.disableConnectorFields"
+                              form-mode="$ctrl.input.selectedConfiguration.id ? 'edit' : 'add'">
+                           </cs-connector-field-renderer>
+                        </fieldset>
+                     </form>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   <div data-ng-show="$ctrl.connectorInfo.config_count === -1">
+      {{'WZ_CONNECTOR.NO_CONFIGURATIONS_REQUIRED_TO_CONN' | translate}}
+   </div>
+   <div class="margin-top-18 save-connector-config-btn">
+      <button class="btn btn-sm btn-primary" id="save-connector-config-btn-{{$ctrl.tabIndex}}" type="button"
+         data-ng-click="$ctrl.saveConfiguration($ctrl.tabIndex)"
+         data-ng-disabled="!$ctrl.formHolder.connectorForm[$ctrl.tabIndex].$dirty || $ctrl.formHolder.connectorForm[$ctrl.tabIndex].$invalid || $ctrl.saveProcessing"><i
+            class="icon icon-check margin-right-sm"></i>{{'WZ_CONNECTOR.SAVE' | translate}}</button>
+   </div>
+</div>

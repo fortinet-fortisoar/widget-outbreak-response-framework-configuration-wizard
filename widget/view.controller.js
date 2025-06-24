@@ -8,16 +8,16 @@
         .module('cybersponse')
         .controller('outbreakAlertConfiguration220Ctrl', outbreakAlertConfiguration220Ctrl);
 
-    outbreakAlertConfiguration220Ctrl.$inject = ['$scope', '$http', 'WizardHandler', '$controller', '$state', 'connectorService', 'marketplaceService', 'CommonUtils', '$window', 'toaster', 'currentPermissionsService', '_', '$resource', 'API', 'ALL_RECORDS_SIZE', 'widgetBasePath', '$rootScope', 'websocketService', '$timeout', 'widgetUtilityService', 'PagedCollection', 'Query'];
+    outbreakAlertConfiguration220Ctrl.$inject = ['$scope', '$http', '$q', 'WizardHandler', '$controller', '$state', 'connectorService', 'CommonUtils', '$window', 'toaster', 'currentPermissionsService', '_', '$resource', 'API', 'ALL_RECORDS_SIZE', 'widgetBasePath', '$rootScope', 'websocketService', '$timeout', 'widgetUtilityService', 'PagedCollection', 'Query', `Modules`];
 
-    function outbreakAlertConfiguration220Ctrl($scope, $http, WizardHandler, $controller, $state, connectorService, marketplaceService, CommonUtils, $window, toaster, currentPermissionsService, _, $resource, API, ALL_RECORDS_SIZE, widgetBasePath, $rootScope, websocketService, $timeout, widgetUtilityService, PagedCollection, Query) {
+    function outbreakAlertConfiguration220Ctrl($scope, $http, $q, WizardHandler, $controller, $state, connectorService, CommonUtils, $window, toaster, currentPermissionsService, _, $resource, API, ALL_RECORDS_SIZE, widgetBasePath, $rootScope, websocketService, $timeout, widgetUtilityService, PagedCollection, Query, Modules) {
         $controller('BaseConnectorCtrl', {
             $scope: $scope
         });
         $scope.processingPicklist = false;
         $scope.huntparams = {};
         $scope.isConnectorsHealthy = false;
-        $scope.processingConnector = false;
+        $scope.isConnectorsInstalled = false;
         $scope.selectHuntTool = selectHuntTool;
         $scope.triggerAutoInstallOutbreaksPlaybook = triggerAutoInstallOutbreaksPlaybook;
         $scope.backStartPage = backStartPage;
@@ -31,20 +31,15 @@
         $scope.cancel = cancel;
         $scope.moveToFinish = moveToFinish;
         $scope.close = close;
-        $scope.saveConnector = saveConnector;
         $scope.getDisplayHuntTools = getDisplayHuntTools;
-        $scope.threatHuntConfigurationChanged = threatHuntConfigurationChanged;
         $scope.loadActiveTab = loadActiveTab;
-        $scope.toggle = [];
+        $scope.connectorInstalledOnAgents = [];
         $scope.configPlaybookTaskID = '';
-        $scope.toggleRemediation = true;
-        $scope.toggleConnectorConfig = [];
-        $scope.connectorHealthStatus = [];
-        $scope.connectorDefaultStatus = [];
-        $scope.toggleRemediationConfig = false;
+        $scope.installedConnectors = [];
+        $scope.connectorReady = [];
         $scope.isPlaybookExecuted = false;
-        $scope.toggleAdvancedSettings = toggleAdvancedSettings;
-        $scope.toggleConnectorConfigSettings = toggleConnectorConfigSettings;
+        $scope.toggleConnectorConfigSettings = { open: true };
+        $scope.toggleParametersSettings = { open: false };
         $scope.backNotification = backNotification;
         $scope.nextNotification = nextNotification;
         $scope.isLightTheme = $rootScope.theme.id === 'light';
@@ -140,30 +135,21 @@
             $scope.selectedEnv.scheduleFrequency = data.scheduleFrequency;
         });
 
-        function toggleAdvancedSettings(index) {
-            $scope.toggle[index] = !$scope.toggle[index];
-        }
-
-        function toggleConnectorConfigSettings(index) {
-            $scope.toggleConnectorConfig[index] = !$scope.toggleConnectorConfig[index];
-        }
-
-        function loadActiveTab(tabIndex, tabName) {
+        function loadActiveTab(tabIndex) {
+            $scope.toggleConnectorConfigSettings = { open: true };
+            $scope.toggleParametersSettings = { open: false };
             if (CommonUtils.isUndefined(tabIndex)) {
-                var selectedHuntTool = $scope.selectedEnv.huntTools[0];
-                var huntToolName = _.get($scope.huntToolsMapping, selectedHuntTool);
                 if (CommonUtils.isUndefined($scope.params.activeTab)) {
                     $scope.params = {
                         activeTab: 0
                     }
                 }
-                _fetchConnectorConfig(huntToolName, $scope.params.activeTab);
-
-
             }
             else {
-                var huntToolName = _.get($scope.huntToolsMapping, tabName);
-                _fetchConnectorConfig(huntToolName, tabIndex);
+                $scope.params = {
+                    activeTab: tabIndex
+                };
+                $scope.selectedConnectorName = $scope.installedConnectors[tabIndex].label;
             }
         }
 
@@ -190,50 +176,166 @@
             }
         }
 
-        function configHuntTool() {
-            var queryBody = {
-                "logic": "AND",
-                "filters": [
-                    {
-                        "type": "primitive",
-                        "field": "key",
-                        "value": "outbreak-threat-hunt-tools-params",
-                        "operator": "eq",
-                        "_operator": "eq"
-                    }
-                ]
+        async function configHuntTool() {
+            $scope.isConnectorsInstalled = true;
+            $scope.selectedConnectorName = nistConnectorName;
+            const queryBody = {
+                logic: "AND",
+                filters: [{
+                    type: "primitive",
+                    field: "key",
+                    value: "outbreak-threat-hunt-tools-params",
+                    operator: "eq",
+                    _operator: "eq"
+                }]
             };
-            var queryString = {
-                $limit: ALL_RECORDS_SIZE
-            };
-            $resource(API.QUERY + 'keys').save(queryString, queryBody).$promise.then(function (response) {
-                if (response['hydra:member'] && response['hydra:member'].length > 0) {
-                    if ($scope.selectedEnv.huntTools[0] !== nistConnectorName) {
-                        $scope.selectedEnv.huntTools.splice(0, 0, nistConnectorName);
-                    }
-                    $scope.toggle = [];
-                    $scope.toggleConnectorConfig = [];
-                    $scope.connectorHealthStatus = [];
-                    $scope.connectorDefaultStatus = [];
-                    $scope.threatHuntToolsParams = response['hydra:member'][0].jSONValue;
-                    for (let index = 0; index < $scope.selectedEnv.huntTools.length; index++) {
-                        $scope.toggle[index] = false;
-                        $scope.toggleConnectorConfig[index] = true;
-                        $scope.connectorHealthStatus[index] = false;
-                        $scope.connectorDefaultStatus[index] = true;
+            const queryString = { $limit: ALL_RECORDS_SIZE };
+            try {
+                const response = await $resource(API.QUERY + 'keys').save(queryString, queryBody).$promise;
 
+                if (response['hydra:member'] && response['hydra:member'].length > 0) {
+                    var selectedConnectors = angular.copy($scope.selectedEnv.huntTools);
+                    if (selectedConnectors[0] !== nistConnectorName) {
+                        selectedConnectors.splice(0, 0, nistConnectorName);
                     }
-                    loadActiveTab($state.params.tabIndex, $state.params.tab);
-                    WizardHandler.wizard('OutbreaksolutionpackWizard').next();
+                    $scope.installedConnectors = [];
+                    $scope.threatHuntToolsParams = response['hydra:member'][0].jSONValue;
+                    for (let index = 0; index < selectedConnectors.length; index++) {
+                        await _fetchConnectorDetails(selectedConnectors[index], index);
+                    }
+                    if (_.every($scope.connectorReady, val => val === true)) {
+                        loadActiveTab($state.params.tabIndex);
+                        if ($scope.selectedEnv.huntTools[0] !== nistConnectorName) {
+                            $scope.selectedEnv.huntTools.splice(0, 0, nistConnectorName);
+                        }
+                        $scope.isConnectorsInstalled = false;
+                        WizardHandler.wizard('OutbreaksolutionpackWizard').next();
+                    }
+                } else {
+                    toaster.error({ body: 'Threat Hunt Tool parameters is not found in Key-Store' });
                 }
-                else {
-                    toaster.error({
-                        body: 'Threat Hunt Tool parameters is not found in Key-Store'
-                    });
-                    return;
-                }
+            } catch (error) {
+                console.error('Error in configHuntTool:', error);
+                toaster.error({ body: 'An error occurred while loading threat hunt tools.' });
+            }
+        }
+
+        function _fetchConnectorDetails(connectorName, index) {
+            return new Promise((resolve) => {
+                const queryBody = {
+                    "sort": [
+                        {
+                            "field": "label",
+                            "direction": "ASC"
+                        }
+                    ],
+                    "page": 1,
+                    "limit": 30,
+                    "logic": "AND",
+                    "filters": [
+                        {
+                            "field": "type",
+                            "operator": "in",
+                            "value": [
+                                "connector"
+                            ]
+                        },
+                        {
+                            "field": "installed",
+                            "operator": "eq",
+                            "value": true
+                        },
+                        {
+                            "logic": "OR",
+                            "filters": [
+                                {
+                                    "field": "development",
+                                    "operator": "eq",
+                                    "value": false
+                                },
+                                {
+                                    "field": "type",
+                                    "operator": "eq",
+                                    "value": "widget"
+                                },
+                                {
+                                    "field": "type",
+                                    "operator": "eq",
+                                    "value": "solutionpack"
+                                }
+                            ]
+                        }
+                    ],
+                    "search": "NIST National Vulnerability Database"
+                };
+                const url = `solutionpacks?$limit=${ALL_RECORDS_SIZE}&$page=1&$search=${connectorName.replace(/ /g, '%20')}`;
+                $http.post(API.QUERY + url, queryBody).then(async (response) => {
+                    if (response.data['hydra:member'].length > 0) {
+                        try {
+                            const connectorMeta = angular.copy(response.data['hydra:member'][0]);
+                            const connector = await connectorService.getConnector(connectorMeta.name, connectorMeta.version);
+                            connectorMeta.connectorInfo = angular.copy(connector);
+                            connectorMeta.connectorInfo.baseId = connector.id;
+                            await _loadConnectorAgents(connectorMeta, index);
+                            $scope.installedConnectors[index] = connectorMeta;
+                            $scope.installedConnectors[index].healthStatus = false;
+                            $scope.installedConnectors[index].defaultConfig = false;
+                            $scope.connectorReady[index] = true;
+                            resolve();
+                        } catch (err) {
+                            console.error('Error in getConnector:', err);
+                            $scope.connectorReady[index] = false;
+                            resolve();
+                        }
+                    } else {
+                        console.warn(`${connectorName} connector is not installed`);
+                        $scope.connectorReady[index] = false;
+                        resolve();
+                    }
+                }).catch((error) => {
+                    console.error('An error occurred:', error);
+                    $scope.connectorReady[index] = false;
+                    resolve();
+                });
             });
         }
+
+        function _loadConnectorAgents(installedConnector, index) {
+            return connectorService.getAgents(installedConnector).then((installedAgents) => {
+                $scope.connectorInstalledOnAgents[index] = installedAgents;
+                return installedAgents;
+            }).catch((err) => {
+                console.error('Error in getAgents:', err);
+                return [];
+            });
+        }
+
+        $scope.$on('healthCheckDetails', function (event, connectorDetails) {
+            var connector = angular.copy(connectorDetails);
+            const connectorConfig = _.find(connector.connectorInfo.configuration, { config_id: connector.config_id });
+            $scope.installedConnectors[connector.tabIndex].defaultConfig = connector.connectorInfo.configuration.some(item => item.default === true);
+            if (!CommonUtils.isUndefined(connectorConfig) && connectorConfig.status === "Available") {
+                $scope.installedConnectors[connector.tabIndex].healthStatus = true;
+                _.assign(connector.connectorInfo, { "configuration": connectorConfig });
+                _.assign(connector.connectorInfo, { "playbook_collections": connector.connectorInfo.playbook_collections[0] });
+                _.assign(connector.connectorInfo, { "uuid": $scope.installedConnectors[connector.tabIndex].uuid });
+            } else {
+                $scope.toggleConnectorConfigSettings = { open: true };
+                $scope.toggleParametersSettings = { open: false };
+                $scope.installedConnectors[connector.tabIndex].healthStatus = false;
+                $scope.installedConnectors[connector.tabIndex].defaultConfig = false;
+            }
+        });
+
+        $scope.$on('toggleAgentMode', function (event, data) {
+            $scope.installedConnectors[data.tabIndex].healthStatus = false;
+            $scope.installedConnectors[data.tabIndex].defaultConfig = false;
+        });
+
+        $scope.$on('configurationChanged', function (event, data) {
+            $scope.installedConnectors[data.tabIndex].healthStatus = false;
+            $scope.installedConnectors[data.tabIndex].defaultConfig = false;
+        });
 
         function close() {
             $timeout(function () { $window.location.reload(); }, 3000);
@@ -276,211 +378,6 @@
                     return;
                 }
             });
-
-        }
-
-        function _fetchConnectorConfig(connectorName, tabIndex) {
-            var queryBody = {
-                "logic": "AND",
-                "filters": [
-                    {
-                        "field": "name",
-                        "operator": "in",
-                        "value": connectorName
-                    }
-                ]
-            };
-            $resource(API.QUERY + 'solutionpacks').save({ $limit: ALL_RECORDS_SIZE }, queryBody).$promise
-                .then(function (response) {
-                    if (Array.isArray(response['hydra:member']) && response['hydra:member'].length > 0) {
-                        var huntToolDetails = _.map(response['hydra:member'], obj => {
-                            return _.pick(obj, ['name', 'label', 'version', 'uuid']);
-                        });
-
-                        if (huntToolDetails.length > 0) {
-                            _loadConnectorDetails(huntToolDetails[0].name, huntToolDetails[0].version, huntToolDetails[0], tabIndex);
-                        } else {
-                            console.error('No hunt tool details available');
-                        }
-                    } else {
-                        console.error('No data found in response[\'hydra:member\']');
-                    }
-                })
-                .catch(function (error) {
-                    console.error('An error occurred:', error);
-                });
-        }
-
-        function _loadConnectorDetails(connectorName, connectorVersion, sourceControl, tabIndex) {
-            $scope.processingConnector = true;
-            $scope.configuredConnector = false;
-            $scope.isConnectorHealthy = false;
-            connectorService.getConnector(connectorName, connectorVersion).then(function (connector) {
-                marketplaceService.getContentDetails(API.BASE + 'solutionpacks/' + sourceControl.uuid + '?$relationships=true').then(function (response) {
-                    $scope.contentDetail = response.data;
-                    if (connector.configuration.length > 0) {
-                        $scope.isConnectorConfigured = true;
-                        connectorService.getConnectorHealth(response.data, connector.configuration[0].config_id, connector.configuration[0].agent).then(function (data) {
-                            if (data.status === "Available") {
-                                $scope.isConnectorHealthy = true;
-                            }
-                        });
-                    }
-                    else {
-                        $scope.isConnectorConfigured = false;
-                    }
-                });
-                if (!connector) {
-                    toaster.error({
-                        body: 'The Connector "' + connectorName + '" is not installed. Install the connector and re-run this wizard to complete the configuration'
-                    });
-                    return;
-                }
-                $scope.selectedConnector = connector;
-                $scope.loadConnector($scope.selectedConnector, false, false);
-                $scope.processingConnector = false;
-            });
-        }
-
-        function saveConnector(tabIndex, saveFrom) {
-            $scope.isConnectorConfigured = true;
-            $scope.configuredConnector = false;
-            var data = angular.copy($scope.connector);
-            if (CommonUtils.isUndefined(data)) {
-                $scope.statusChanged = false;
-                return;
-            }
-            if (!currentPermissionsService.availablePermission('connectors', 'update')) {
-                $scope.statusChanged = false;
-                return;
-            }
-            var newConfiguration, newConfig, deleteConfig;
-            newConfiguration = false;
-            if (saveFrom !== 'deleteConfigAndSave') {
-                if (!_.isEmpty($scope.connector.config_schema)) {
-                    if (!validateConfigurationForm(tabIndex)) {
-                        return;
-                    }
-                }
-                if (!$scope.input.selectedConfiguration.id) {
-                    newConfiguration = true;
-                    $scope.input.selectedConfiguration.config_id = $window.UUID.generate();
-                    if ($scope.input.selectedConfiguration.default) {
-                        angular.forEach(data.configuration, function (configuration) {
-                            if (configuration.config_id !== $scope.input.selectedConfiguration.config_id) {
-                                configuration.default = false;
-                            }
-                        });
-                    }
-                    data.configuration.push($scope.input.selectedConfiguration);
-                    newConfig = $scope.input.selectedConfiguration;
-                }
-                delete data.newConfig;
-            }
-            if (saveFrom === 'deleteConfigAndSave') {
-                $scope.isConnectorConfigured = false;
-                deleteConfig = true;
-                $scope.isConnectorHealthy = false;
-            }
-            var updateData = {
-                connector: data.id,
-                name: $scope.input.selectedConfiguration.name,
-                config_id: $scope.input.selectedConfiguration.config_id,
-                id: $scope.input.selectedConfiguration.id,
-                default: $scope.input.selectedConfiguration.default,
-                config: {},
-                teams: $scope.input.selectedConfiguration.teams
-            };
-            $scope.saveValues($scope.input.selectedConfiguration.fields, updateData.config);
-            $scope.processing = true;
-            connectorService.updateConnectorConfig(updateData, newConfiguration, deleteConfig).then(function (response) {
-                if (newConfig) {
-                    $scope.connector.configuration.push(response);
-                    if (newConfig.default) {
-                        $scope.removeDefaultFromOthers();
-                    }
-                }
-                $scope.formHolder.connectorForm[tabIndex].$setPristine();
-                if (!deleteConfig) {
-                    $scope.input.selectedConfiguration.id = response.id;
-                    $scope.configuredConnector = true;
-                    $scope.isConnectorHealthy = true;
-                }
-                $scope.checkHealth();
-                $scope.statusChanged = false;
-            }, function (error) {
-                toaster.error({
-                    body: error.data.message ? error.data.message : error.data['hydra:description']
-                });
-            }).finally(function () {
-                $scope.processing = false;
-            });
-        }
-
-        function validateConfigurationForm(tabIndex) {
-            if ($scope.formHolder.connectorForm[tabIndex] && !$scope.formHolder.connectorForm[tabIndex].$valid) {
-                toaster.error({
-                    body: 'Please fix the highlighted errors.'
-                });
-                $scope.formHolder.connectorForm[tabIndex].$setTouched();
-                $scope.formHolder.connectorForm[tabIndex].$focusOnFirstError();
-                return false;
-            }
-            return true;
-        }
-
-        function threatHuntConfigurationChanged(tabIndex, configuration, enableAddConfig) {
-            $scope.formHolder.connectorForm[tabIndex].$setPristine();
-            $scope.input.selectedConfiguration = configuration;
-            $scope.selected.params = {};
-            if ($scope.input.oldSelectedConfiguration.uuid && !validateConfigurationForm(tabIndex)) {
-                $scope.input.selectedConfiguration = $scope.input.oldSelectedConfiguration;
-                return;
-            }
-            if (CommonUtils.isUndefined($scope.connector)) {
-                return;
-            }
-            if (CommonUtils.isUndefined(configuration)) {
-                let newConfigObject = angular.copy($scope.connector.newConfig);
-                newConfigObject.default = false;
-                $scope.input.selectedConfiguration = newConfigObject;
-            }
-            _updateSelectedConfig();
-            if (!enableAddConfig) {
-                $scope.enableAddConfig = false;
-            }
-            if (!$scope.selectedAgent) {
-                $scope.checkHealth(status);
-            } else {
-                $scope.checkIngestionEnable();
-            }
-            if ($scope.connector.configuration.length === 0) {
-                $scope.input.selectedConfiguration.default = true;
-            }
-            else {
-                let isDefault = false;
-                ($scope.connector.configuration).forEach(config => {
-                    if (config.default) {
-                        isDefault = true;
-                    }
-                });
-                if (!isDefault && CommonUtils.isUndefined($scope.selected.configuration)) {
-                    $scope.input.selectedConfiguration.default = true;
-                }
-            }
-            $scope.input.oldSelectedConfiguration = angular.copy($scope.input.selectedConfiguration);
-        }
-
-        function _updateSelectedConfig(update) {
-            $scope.selected.configuration = $scope.input.selectedConfiguration.id ? $scope.input.selectedConfiguration : null;
-            $scope.selected.params = {};
-            if (update) {
-                _.map(self.connector.configuration, function (connectorConfig) {
-                    if (connectorConfig.config_id === $scope.input.selectedConfiguration.config_id) {
-                        connectorConfig = self._.extend(connectorConfig, $scope.input.selectedConfiguration);
-                    }
-                });
-            }
         }
 
         function backNotification() {
@@ -510,13 +407,13 @@
         function _connectorErrorHandling(threatHuntTool) {
             var huntToolIndex = $scope.selectedEnv.huntTools.indexOf(threatHuntTool);
             _activeErrorTab(threatHuntTool, huntToolIndex);
-            loadActiveTab(huntToolIndex, threatHuntTool);
+            loadActiveTab(huntToolIndex);
             var paramsConfig = document.getElementById('accordion-params-config-' + huntToolIndex);
             paramsConfig.childNodes[2].classList.add('in');
-            toggleAdvancedSettings(huntToolIndex);
+            $scope.toggleParametersSettings = { open: true };
             var connectorConfig = document.getElementById('accordion-connector-config-' + huntToolIndex);
             connectorConfig.childNodes[2].classList.replace('in', null);
-            toggleConnectorConfigSettings(huntToolIndex);
+            $scope.toggleConnectorConfigSettings = { open: false };
             toaster.error({
                 body: threatHuntTool + ' Threat Hunt Tool parameters are required'
             });
@@ -524,116 +421,51 @@
 
         function _checkConnectorHealth() {
             $scope.isConnectorsHealthy = true;
-            // Array to hold all promises
-            let promises = [];
-            for (let index = 0; index < $scope.selectedEnv.huntTools.length; index++) {
-                let huntToolName = _.get($scope.huntToolsMapping, $scope.selectedEnv.huntTools[index]);
-                let queryBody = {
-                    "logic": "AND",
-                    "filters": [
-                        {
-                            "field": "name",
-                            "operator": "in",
-                            "value": huntToolName
-                        }
-                    ]
-                };
-
-                // Create a promise for each API call
-                let promise = $resource(API.QUERY + 'solutionpacks').save({ $limit: ALL_RECORDS_SIZE }, queryBody).$promise
-                    .then(function (response) {
-                        if (Array.isArray(response['hydra:member']) && response['hydra:member'].length > 0) {
-                            let huntToolDetails = _.map(response['hydra:member'], obj => _.pick(obj, ['name', 'label', 'version', 'uuid']));
-                            return connectorService.getConnector(huntToolDetails[0].name, huntToolDetails[0].version)
-                                .then(function (connector) {
-                                    if (!connector) {
-                                        toaster.error({
-                                            body: 'The Connector "' + huntToolDetails[0].name + '" is not installed. Install the connector manually and re-run this wizard to complete the configuration'
-                                        });
-                                        return Promise.reject('Connector not installed');
-                                    }
-                                    // check default 
-                                    var default_connector = connector.configuration.find(function (config) {
-                                        return config.default;
-                                    });
-                                    //check if any of the cconnector config is not default
-                                    // nist-nvd check is skipped
-                                    $scope.connectorDefaultStatus[index] = true;
-                                    if (angular.isUndefined(default_connector)) {
-                                        let errorMessage = `The default configuration for the ${connector.label} connector not found.`
-                                        toaster.error({
-                                            body: errorMessage
-                                        });
-                                        $scope.connectorDefaultStatus[index] = false;
-                                        return Promise.reject('Default configuration not found');
-                                    }
-                                    return marketplaceService.getContentDetails(API.BASE + 'solutionpacks/' + huntToolDetails[0].uuid + '?$relationships=true')
-                                        .then(function (response) {
-                                            if (connector.configuration.length > 0) {
-                                                $scope.isConnectorsConfigured = true;
-                                                return connectorService.getConnectorHealth(response.data, default_connector.config_id, default_connector.agent)
-                                                    .then(function (data) {
-                                                        // added data.name==="nist-nvd" to skip nist health check; 
-                                                        // can remove it when not required 
-                                                        if (data.name === "nist-nvd" || data.status === "Available") {
-                                                            $scope.connectorHealthStatus[index] = true;
-                                                        }
-                                                    });
-                                            } else {
-                                                $scope.isConnectorsConfigured = false;
-                                            }
-                                        });
-                                });
-                        } else {
-                            console.error('No data found in response[\'hydra:member\']');
-                        }
-                    })
-                    .catch(function (error) {
-                        console.error('An error occurred:', error);
+            const invalidConnectorLabels = _.chain($scope.installedConnectors)
+                .filter(c => !(c.healthStatus && c.defaultConfig) && c.label !== nistConnectorName)
+                .map('label')
+                .value();
+            if (_.isEmpty(invalidConnectorLabels)) {
+                // All connectors are valid
+                $scope.isConnectorsHealthy = false;
+                var nistConnectorIndex = _.findIndex($scope.installedConnectors, { label: nistConnectorName });
+                if (!$scope.installedConnectors[nistConnectorIndex].connectorInfo.configuration[0].default && $scope.installedConnectors[nistConnectorIndex].label === nistConnectorName) {
+                    $scope.params.activeTab = nistConnectorIndex;
+                    loadActiveTab(nistConnectorIndex);
+                    toaster.error({
+                        body: `The default configuration for the ${$scope.installedConnectors[nistConnectorIndex].label} connector not found.`
                     });
-                // Add the promise to the array
-                promises.push(promise);
+                    return;
+                }
+                $scope.selectedEnv.fazConnectorConfig = _.find($scope.installedConnectors, { label: 'Fortinet FortiAnalyzer' });
+                if (CommonUtils.isUndefined($scope.selectedEnv.autoInstallOutbreaks)) {
+                    $scope.selectedEnv.autoInstallOutbreaks = {
+                        installSelectedOutbreaks: true,
+                        installOutbreaksFromLastXDays: 0,
+                        installOutbreakType: $scope.selectedEnv.installOutbreakType
+                    };
+                } else {
+                    $scope.selectedEnv.autoInstallOutbreaks.installOutbreakType = $scope.outbreakAlertSeverityList.slice();
+                }
+                WizardHandler.wizard('OutbreaksolutionpackWizard').next();
+            } else {
+                var huntToolIndex = $scope.selectedEnv.huntTools.indexOf(invalidConnectorLabels[0]);
+                $scope.params.activeTab = huntToolIndex;
+                loadActiveTab(huntToolIndex);
+                $scope.isConnectorsHealthy = false;
+                if (!$scope.installedConnectors[huntToolIndex].healthStatus) {
+                    toaster.error({
+                        body: 'The ' + $scope.installedConnectors[huntToolIndex].label + ' either not configured or please wait until the configuration health is being checked.'
+                    });
+                    return;
+                }
+                if (!$scope.installedConnectors[huntToolIndex].defaultConfig) {
+                    toaster.error({
+                        body: `The default configuration for the ${$scope.installedConnectors[huntToolIndex].label} connector not found.`
+                    });
+                    return;
+                }
             }
-            // Use Promise.all to wait for all promises to complete
-            Promise.all(promises)
-                .then(() => {
-                    // After all promises are resolved, evaluate the condition
-                    $scope.isConnectorsHealthy = false;
-                    let indices = _.map(_.filter($scope.connectorHealthStatus, value => value === false), (value, index) => $scope.connectorHealthStatus.indexOf(value, index));
-                    let defaultConfigNotPresent = _.filter($scope.connectorDefaultStatus, value => value === false);
-                    const notConfigConnectors = _.uniq(indices).map(index => $scope.selectedEnv.huntTools[index]);
-                    const toasterMessage = 'Connector ' + notConfigConnectors.join(', ') + ' is not configured';
-                    if (defaultConfigNotPresent.length === 0) {
-                        if (notConfigConnectors.length === 0) {
-                            if (CommonUtils.isUndefined($scope.selectedEnv.autoInstallOutbreaks)) {
-                                $scope.selectedEnv.autoInstallOutbreaks = {
-                                    installSelectedOutbreaks: true,
-                                    installOutbreaksFromLastXDays: 0,
-                                    installOutbreakType: $scope.selectedEnv.installOutbreakType
-                                }
-                            } else {
-                                $scope.selectedEnv.autoInstallOutbreaks.installOutbreakType = $scope.outbreakAlertSeverityList.slice();
-                            }
-                            WizardHandler.wizard('OutbreaksolutionpackWizard').next();
-                        } else {
-                            var huntToolIndex = $scope.selectedEnv.huntTools.indexOf(notConfigConnectors[0]);
-                            $scope.params.activeTab = huntToolIndex;
-                            loadActiveTab(huntToolIndex, notConfigConnectors[0]);
-                            var connectorConfig = document.getElementById('accordion-connector-config-' + huntToolIndex);
-                            connectorConfig.childNodes[2].classList.add('in');
-                            toggleConnectorConfigSettings(huntToolIndex);
-                            var paramsConfig = document.getElementById('accordion-params-config-' + huntToolIndex);
-                            paramsConfig.childNodes[2].classList.replace('in', null);
-                            toggleAdvancedSettings(huntToolIndex);
-                            toaster.error({
-                                body: toasterMessage
-                            });
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('An error occurred in Promise.all:', error);
-                });
         }
 
         function moveToFinish(installationForm) {
@@ -696,8 +528,9 @@
         }
 
         function backThreatHuntConfig() {
-            var selectedHuntTool = $scope.selectedEnv.huntTools[0];
-            loadActiveTab(0, selectedHuntTool);
+            $scope.toggleConnectorConfigSettings = { open: true };
+            $scope.toggleParametersSettings = { open: false };
+            loadActiveTab(0);
             WizardHandler.wizard('OutbreaksolutionpackWizard').previous();
         }
 
@@ -877,11 +710,10 @@
                 ],
                 __selectFields: ["jSONValue"]
             };
-
             pagedCollection.query = new Query(query);
             pagedCollection.load().then(function () {
                 console.log(pagedCollection);
-                if (pagedCollection.data['hydra:member'].length > 0 ) {
+                if (pagedCollection.data['hydra:member'].length > 0) {
                     if (JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue) !== null) {
                         $scope.selectedEnv = JSON.parse(pagedCollection.data['hydra:member'][0].jSONValue).saveConfig;
                     }
@@ -890,6 +722,12 @@
                         $scope.selectedEnv.huntTools.splice(index, 1);
                     }
                 }
+            });
+            Modules.get({
+                module: 'teams',
+                $limit: ALL_RECORDS_SIZE,
+            }).$promise.then(function (result) {
+                $scope.owners = result['hydra:member'];
             });
             if (!currentPermissionsService.availablePermission('workflows', 'execute')) {
                 toaster.error({
