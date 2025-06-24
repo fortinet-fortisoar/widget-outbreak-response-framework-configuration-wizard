@@ -8,9 +8,9 @@
         .module('cybersponse')
         .controller('outbreakAlertConfiguration220Ctrl', outbreakAlertConfiguration220Ctrl);
 
-    outbreakAlertConfiguration220Ctrl.$inject = ['$scope', '$http', '$q', 'WizardHandler', '$controller', '$state', 'connectorService', 'CommonUtils', '$window', 'toaster', 'currentPermissionsService', '_', '$resource', 'API', 'ALL_RECORDS_SIZE', 'widgetBasePath', '$rootScope', 'websocketService', '$timeout', 'widgetUtilityService', 'PagedCollection', 'Query', `Modules`];
+    outbreakAlertConfiguration220Ctrl.$inject = ['$scope', '$http', '$q', 'WizardHandler', '$controller', '$state', 'connectorService', 'CommonUtils', '$window', 'toaster', 'currentPermissionsService', '_', '$resource', 'API', 'ALL_RECORDS_SIZE', 'widgetBasePath', '$rootScope', 'websocketService', '$timeout', 'widgetUtilityService', 'PagedCollection', 'Query', 'Modules', 'config'];
 
-    function outbreakAlertConfiguration220Ctrl($scope, $http, $q, WizardHandler, $controller, $state, connectorService, CommonUtils, $window, toaster, currentPermissionsService, _, $resource, API, ALL_RECORDS_SIZE, widgetBasePath, $rootScope, websocketService, $timeout, widgetUtilityService, PagedCollection, Query, Modules) {
+    function outbreakAlertConfiguration220Ctrl($scope, $http, $q, WizardHandler, $controller, $state, connectorService, CommonUtils, $window, toaster, currentPermissionsService, _, $resource, API, ALL_RECORDS_SIZE, widgetBasePath, $rootScope, websocketService, $timeout, widgetUtilityService, PagedCollection, Query, Modules, config) {
         $controller('BaseConnectorCtrl', {
             $scope: $scope
         });
@@ -53,6 +53,7 @@
         $scope.widgetCSS = widgetBasePath + 'widgetAssets/css/wizard-style.css';
         $scope.params = { activeTab: 0 };
         $scope.noDefaultConnectorSelected = false;
+        $scope.config = config;
         const nistConnectorName = 'NIST National Vulnerability Database';
         $scope.ingestionDetails = {
             "name": "Outbreak-Alerts",
