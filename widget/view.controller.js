@@ -33,7 +33,6 @@
         $scope.close = close;
         $scope.getDisplayHuntTools = getDisplayHuntTools;
         $scope.loadActiveTab = loadActiveTab;
-        $scope.saveSchedules = [];
         $scope.connectorInstalledOnAgents = [];
         $scope.configPlaybookTaskID = '';
         $scope.installedConnectors = [];
@@ -476,21 +475,9 @@
                 _connectorErrorHandling('Splunk');
                 return;
             } else {
-                _getInvestigationSchedule();
                 _checkConnectorHealth();
             }
-        }
 
-        function _getInvestigationSchedule(){
-            var url = API.WORKFLOW + 'api/scheduled/?depth=2&format=json&limit=' + ALL_RECORDS_SIZE + '&ordering=-modified&search=Investigate_' + $scope.ingestionDetails.name + '&task=workflow.tasks.periodic_task';
-            $resource(url).get({}).$promise.then(function (response) {
-                if (response['hydra:member'] && response['hydra:member'].length > 0) {
-                    $scope.saveSchedules[0] = response['hydra:member'][0];
-                }
-                else {
-                    toaster.error({ body: 'Investigate_' + $scope.ingestionDetails.name + ' schedule not found' });
-                }
-            });
         }
 
         function _defaultConfigurationError(){

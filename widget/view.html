@@ -83,8 +83,7 @@
         id="solutionpack-configure-back-env-btn" data-ng-click="backStartPage()"><i
           class="fa fa-chevron-left margin-right-sm"></i>{{viewWidgetVars.SECOND_PAGE_BACK}}</button>
       <button type="button" class="btn btn-primary pull-right btn-sm margin-top-lg margin-right-lg"
-        data-ng-click="configHuntTool()"
-        data-ng-disabled="(selectedEnv.huntTools && selectedEnv.huntTools.length === 0) && !isConnectorsInstalled"
+        data-ng-click="configHuntTool()" data-ng-disabled="(selectedEnv.huntTools && selectedEnv.huntTools.length === 0) && !isConnectorsInstalled"
         id="solutionpack-configure-env-next-btn">{{viewWidgetVars.SECOND_PAGE_NEXT}}<i class="fa margin-left-sm"
           data-ng-class="isConnectorsInstalled ? 'fa-spin fa-spinner' : 'fa-chevron-right'"></i>
       </button>
@@ -143,19 +142,16 @@
                                 </div>
                               </div>
 
-                              <div uib-accordion-group class="panel-default"
-                                data-ng-if="huntTool.label==='Fortinet FortiAnalyzer'"
-                                id="accordion-connector-display-{{ $index }}" is-open="toggleSelectConfiguration.open"
-                                style="width: 100%;">
+                              <div uib-accordion-group class="panel-default" data-ng-if="huntTool.label==='Fortinet FortiAnalyzer'"
+                                id="accordion-connector-display-{{ $index }}" is-open="toggleSelectConfiguration.open" style="width: 100%;">
                                 <uib-accordion-heading class="padding-md">
                                   <div class="clearfix">
                                     <div data-ng-class="{'queue-text-active-color': toggleSelectConfiguration.open}">
-                                      <div class="margin-right-lg pull-left"><span class="queue-card-actions">&nbsp;<i
-                                            class="fa"
+                                      <div class="margin-right-lg pull-left"><span class="queue-card-actions">&nbsp;<i class="fa"
                                             data-ng-class="toggleSelectConfiguration.open ? 'fa-chevron-down' : 'fa-chevron-right'"></i></span>
                                       </div>
                                       <div class="pull-left queue-card-header-text margin-right-3">
-                                        Select Default Configuration for Outbreak Investigation
+                                          Select Default Configuration for Outbreak Investigation
                                       </div>
                                     </div>
                                   </div>
@@ -164,64 +160,55 @@
                                   <div id="selectConfig"
                                     class="margin-top-negative-20 margin-top-md padding-left-0 padding-right-0 threat-hunt-connector-config-width">
                                     <div>
-                                      <div><label class="font-075em">Select Target</label><span
-                                          class="required text-danger">*</span></div>
+                                      <div><label class="font-075em">Select Target</label><span class="required text-danger">*</span></div>
                                       <div
                                         data-ng-class="{ 'has-error':threatHuntConfigForm.selectConfigForm.$invalid || threatHuntConfigForm.selectConfigForm.$pristine}"
                                         class="cs-select width-275">
-                                        <select id="targetSelect" name="targetSelect"
-                                          class="form-control input-sm logic-type font-size-11"
+                                        <select id="targetSelect" name="targetSelect" class="form-control input-sm logic-type font-size-11"
                                           data-ng-disabled="disabled" data-ng-model="config.connectorType"
-                                          data-ng-options="key for key in connectorTypeList"
-                                          data-ng-change="setConnectorType()" required>
-                                          <option value="" disabled>{{'APP.LABEL.SELECT_AN_OPTION' | translate}}
-                                          </option>
+                                          data-ng-options="key for key in connectorTypeList" data-ng-change="setConnectorType()" required>
+                                          <option value="" disabled>{{'APP.LABEL.SELECT_AN_OPTION' | translate}}</option>
                                         </select>
                                         <span class="fa fa-sort-desc"></span>
                                       </div>
                                       <div data-ng-if="config.connectorType">
-                                        <div class="margin-top-lg"><label class="font-075em">Select
-                                            Configuration</label><span class="required text-danger">*</span></div>
+                                        <div class="margin-top-lg"><label class="font-075em">Select Configuration</label><span
+                                          class="required text-danger">*</span></div>
                                         <div class="display-flex">
                                           <div
                                             data-ng-class="{ 'has-error':threatHuntConfigForm.selectConfigForm.$invalid || threatHuntConfigForm.selectConfigForm.$pristine}"
                                             class="cs-select width-275">
                                             <select id="configurationSelect" name="configurationSelect"
-                                              class="form-control input-sm logic-type font-size-11"
-                                              data-ng-disabled="disabled" data-ng-model="config.selectedConfig"
-                                              data-ng-options="configuration as configuration.name for configuration in allConfigurations track by configuration.id"
-                                              data-ng-change="setConnectorConfiguration()" required>
-                                              <option value="" disabled>{{'APP.LABEL.SELECT_AN_OPTION' | translate}}
-                                              </option>
-                                            </select>
+                                          class="form-control input-sm logic-type font-size-11" data-ng-disabled="disabled"
+                                          data-ng-model="config.selectedConfig"
+                                          data-ng-options="configuration as configuration.name for configuration in allConfigurations track by configuration.id"
+                                          data-ng-change="setConnectorConfiguration()" required>
+                                          <option value="" disabled>{{'APP.LABEL.SELECT_AN_OPTION' | translate}}</option>
+                                        </select>
                                             <span class="fa fa-sort-desc"></span>
                                           </div>
                                           <!-- health check -->
                                           <div class="content-detail-form" data-ng-show="config.selectedConfig">
                                             <div class="content-detail-health margin-left-sm">
                                               <span class="content-detail-health-check text-uppercase">
-                                                <i class="fa fa-stethoscope" aria-hidden="true"></i>
-                                                {{'WZ_CONNECTOR.HEALTH_CHECK' |
-                                                translate}}:
-                                                <span>
-                                                  <span data-ng-if="!healthCheckProcessing"
-                                                    class="label-{{config.fazConnectorHealth.status | lowercase}}">
-                                                    {{config.fazConnectorHealth.status}}
-                                                  </span>
-                                                </span>
+                                            <i class="fa fa-stethoscope" aria-hidden="true"></i> {{'WZ_CONNECTOR.HEALTH_CHECK' |
+                                            translate}}:
+                                            <span>
+                                              <span data-ng-if="!healthCheckProcessing"
+                                                class="label-{{config.fazConnectorHealth.status | lowercase}}">
+                                                {{config.fazConnectorHealth.status}}
                                               </span>
-                                              <a class="content-detail-refresh-icon" href="#"
-                                                data-ng-click="checkFAZConnectorHealth()"
+                                              </span>
+                                              </span>
+                                              <a class="content-detail-refresh-icon" href="#" data-ng-click="checkFAZConnectorHealth()"
                                                 data-ng-class="{'pointer-event-none': healthCheckProcessing}">
-                                                <span class="fa icon icon-refresh"
-                                                  data-ng-class="{'fa-spin': healthCheckProcessing}"
-                                                  title="{{'WZ_CONNECTOR.CHECK_HEALTH_STATUS' | translate}}"></span>
+                                                <span class="fa icon icon-refresh" data-ng-class="{'fa-spin': healthCheckProcessing}"
+                                              title="{{'WZ_CONNECTOR.CHECK_HEALTH_STATUS' | translate}}"></span>
                                               </a>
-                                              <span class="content-detail-info-icon"
-                                                data-uib-tooltip="{{config.fazConnectorHealth.message}}"
-                                                tooltip-class="break-word" data-tooltip-append-to-body="true">
-                                                <i class="icon icon-information"></i>
-                                              </span>
+                                              <span class="content-detail-info-icon" data-uib-tooltip="{{config.fazConnectorHealth.message}}"
+                                            tooltip-class="break-word" data-tooltip-append-to-body="true">
+                                            <i class="icon icon-information"></i>
+                                          </span>
                                             </div>
                                           </div>
                                         </div>
@@ -230,7 +217,7 @@
                                   </div>
                                 </div>
                               </div>
-
+                              
                               <div data-ng-if="huntTool.label!=='NIST National Vulnerability Database'"
                                 class="form-group">
                                 <div uib-accordion-group class="panel-default" id="accordion-params-config-{{ $index }}"
@@ -321,8 +308,7 @@
           id="solutionpack-configure-back-env-btn" data-ng-click="backSelectHuntTools()"><i
             class="fa fa-chevron-left margin-right-sm"></i>{{viewWidgetVars.THIRD_PAGE_BACK}}</button>
         <button type="button" class="btn btn-primary pull-right btn-sm margin-top-lg margin-right-lg"
-          data-ng-click="nextNotification(threatHuntConfigForm)"
-          data-ng-disabled="isConnectorsHealthy || healthCheckProcessing"
+          data-ng-click="nextNotification(threatHuntConfigForm)" data-ng-disabled="isConnectorsHealthy || healthCheckProcessing"
           id="solutionpack-configure-env-next-btn">{{viewWidgetVars.THIRD_PAGE_NEXT}}<i class="fa margin-left-sm"
             data-ng-class="isConnectorsHealthy ? 'fa-spin fa-spinner' : 'fa-chevron-right'"></i>
         </button>
@@ -379,7 +365,7 @@
                       <span>{{viewWidgetVars.FOURTH_PAGE_SECTION_2_DISCRIPTION}}<br /></span>
                     </p>
                     <div class="margin-left-md" data-schedule-playbook view-widget-vars="viewWidgetVars"
-                      save-schedule="saveSchedules" index-schedule="0" json-data="ingestionDetails">
+                      json-data="ingestionDetails">
                     </div>
                   </div>
                 </div>

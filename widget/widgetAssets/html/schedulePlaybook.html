@@ -7,10 +7,10 @@
   <fieldset data-ng-disabled="!allowEdit">
     <div class="row">
       <div data-ng-if="!params.form.schedule.kwargs.exit_if_running"
-        class="col-md-12 font-size-14 control-label margin-bottom-md padding-0">{{viewWidgetVars.DIRECTIVE_MESSAGE_1}}<span
+        class="col-md-12 font-size-14 margin-bottom-md padding-0">{{viewWidgetVars.DIRECTIVE_MESSAGE_1}}<span
           data-ng-show="field.required && form.config.ignoreRequired" class="text-danger">*</span></div>
       <div data-ng-if="!params.form.schedule.kwargs.exit_if_running" class="cs-select width-150 float-left">
-        <select class="control-label form-control width-150" data-ng-model="params.form.scheduled">
+        <select class="form-control width-150" data-ng-model="params.form.scheduled">
           <option value="N">{{viewWidgetVars.DIRECTIVE_NO_OPTION}}</option>
           <option value="Y">{{viewWidgetVars.DIRECTIVE_YES_OPTION}}</option>
         </select>
@@ -43,31 +43,31 @@
               <div class="pull-left width-15">
                 <div class="halign-center"><input id="minute-schedule-crontab" name="minute-schedule-crontab"
                     type="text" class="form-control  halign-center input-sm"
-                    data-ng-model="scheduleConfig.crontab.minute" data-ng-change="updateCron(true)"></div>
+                    data-ng-model="scheduleConfig.crontab.minute" data-ng-change="updateCron()"></div>
                 <div class="halign-center"><label class="control-label muted">{{viewWidgetVars.DIRECTIVE_MINUTE_LABEL}}</label></div>
               </div>
               <div class="pull-left width-15">
                 <div class="halign-center"><input id="hour-schedule-crontab" name="hour-schedule-crontab" type="text"
                     class="form-control halign-center input-sm" data-ng-model="scheduleConfig.crontab.hour"
-                    data-ng-change="updateCron(true)"></div>
+                    data-ng-change="updateCron()"></div>
                 <div class="halign-center"><label class="control-label muted">{{viewWidgetVars.DIRECTIVE_HOUR_LABEL}}</label></div>
               </div>
               <div class="pull-left width-15">
                 <div class="halign-center"><input id="dom-schedule-crontab" name="dom-schedule-crontab" type="text"
                     class="form-control halign-center input-sm" data-ng-model="scheduleConfig.crontab.day_of_month"
-                    data-ng-change="updateCron(true)"></div>
+                    data-ng-change="updateCron()"></div>
                 <div class="halign-center"><label class="control-label muted">{{viewWidgetVars.DIRECTIVE_MONTH_DAY_LABEL}}</label></div>
               </div>
               <div class="pull-left width-15">
                 <div class=""><input id="moy-schedule-crontab" name="moy-schedule-crontab" type="text"
                     class="form-control halign-center input-sm" data-ng-model="scheduleConfig.crontab.month_of_year"
-                    data-ng-change="updateCron(true)"></div>
+                    data-ng-change="updateCron()"></div>
                 <div class="halign-center"><label class="control-label muted">{{viewWidgetVars.DIRECTIVE_MONTH_LABEL}}</label></div>
               </div>
               <div class="pull-left width-15">
                 <div class="halign-center"><input id="doy-schedule-crontab" name="doy-schedule-crontab" type="text"
                     class="form-control halign-center input-sm" data-ng-model="scheduleConfig.crontab.day_of_week"
-                    data-ng-change="updateCron(true)"></div>
+                    data-ng-change="updateCron()"></div>
                 <div class="halign-center"><label class="control-label muted">{{viewWidgetVars.DIRECTIVE_WEEK_DAY_LABEL}}</label></div>
               </div>
           </div>
@@ -78,7 +78,7 @@
             data-ng-class="{ 'has-error': scheduleForm['timezoneId'].$invalid && scheduleForm['timezoneId'].$touched }">
             <label for="timezone" class="control-label">{{viewWidgetVars.DIRECTIVE_TIMEZONE_LABEL}} <span
                 data-uib-tooltip="{{viewWidgetVars.DIRECTIVE_TIMEZONE_TOOLTIP}}" data-tooltip-append-to-body="true"><i
-                  class="icon icon-information"></i></span></label>
+                  class="icon icon-information"></i></span>
               <div class="btn-group cd-dropdown padding-top-sm" uib-dropdown is-open="fieldDropDown.isopen">
                 <button class="form-control input-sm" data-ng-disabled="disabled" uib-dropdown-toggle type="button"
                   data-toggle="dropdown">{{scheduleConfig.kwargs.timezone===undefined ||
@@ -115,11 +115,11 @@
     </div>
   <div ng-form="scheduleForm" name="scheduleForm" class="margin-left-negative-15">
     <button id="widget-edit-save" data-ng-if="params.updating === false && allowEdit" class="btn btn-sm btn-primary"
-      data-ng-disabled="!scheduleForm.$dirty || params.isSaveDisabled" data-ng-click="save(scheduleForm)">
+      data-ng-disabled="!scheduleForm.$dirty" data-ng-click="save(scheduleForm)">
       <i class="icon icon-check margin-right-sm"></i>{{viewWidgetVars.DIRECTIVE_SAVE_BUTTON}}
     </button>
     <button data-ng-if="params.updating === true" type="button" class="btn btn-sm btn-primary"
-      ng-disabled="params.updating === true || params.isSaveDisabled" id="saving-edit-schedules">
+      ng-disabled="params.updating === true" id="saving-edit-schedules">
       <cs-spinner class="pull-left margin-top-xsm state-wait button-spinner margin-right-sm" data-show-background="true"
         data-no-margin="margin-0"></cs-spinner>{{viewWidgetVars.DIRECTIVE_SAVEING_BUTTON}}
     </button>
