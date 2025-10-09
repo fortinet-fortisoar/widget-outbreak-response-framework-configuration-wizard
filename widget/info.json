@@ -18,7 +18,7 @@
         ],
         "standalone": true,
         "description": "The Outbreak Response Framework solution pack uses the Outbreak Response Framework Configuration wizard to configure Threat Detection integrations within a FortiSOAR environment. The configuration process includes selecting a Threat Detection integration, such as FortiSIEM or FortiAnalyzer, and defining an investigation schedule for the outbreaks.",
-        "help_online": "https:\/\/github.com\/fortinet-fortisoar\/widget-outbreak-alert-configuration-wizard\/blob\/release\/2.2.0\/README.md",
+        "help_online": "https:\/\/github.com\/fortinet-fortisoar\/widget-outbreak-alert-configuration-wizard\/blob\/release\/2.2.1\/README.md",
         "windowClass": "Full Width",
         "compatibility": [
             "7.6.0"
